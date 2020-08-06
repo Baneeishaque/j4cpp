@@ -89,8 +89,11 @@ int testCustomJavaMethod(JNIEnv *env, const char *classPath1, const char *classN
     jmethodID threadGetLoader = env->GetMethodID(threadClass, "getContextClassLoader", "()Ljava/lang/ClassLoader;");
     jobject contextClassLoader = env->CallObjectMethod(thread, threadGetLoader);
     jclass urlClassLoaderClass = env->FindClass("java/net/URLClassLoader");
-    jmethodID urlClassLoaderCtor = env->GetMethodID(urlClassLoaderClass, "<init>",
-                                                    "([Ljava/net/URL;Ljava/lang/ClassLoader;)V");
+    jmethodID urlClassLoaderCtor = env->GetMethodID(
+            urlClassLoaderClass,
+            "<init>",
+            "([Ljava/net/URL;Ljava/lang/ClassLoader;)V"
+    );
     jobject urlClassLoader = env->NewObject(urlClassLoaderClass, urlClassLoaderCtor, urlArray, contextClassLoader);
     jmethodID threadSetLoader = env->GetMethodID(threadClass, "setContextClassLoader", "(Ljava/lang/ClassLoader;)V");
     env->CallVoidMethod(thread, threadSetLoader, urlClassLoader);
