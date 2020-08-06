@@ -1,37 +1,44 @@
 #include <iostream>
 #include <jni.h>
-#include <windows.h>
+#include <Windows.h>
 #include <string>
 #include <vector>
+#include "j4cs.h"
 
 using namespace std;
 
 typedef jint(JNICALL *CreateJavaVM)(JavaVM **, void **, void *);
 
-int testCustomJavaMethod(JNIEnv *env, const char *classPath1, const char *className, const char *methodName);
+int testCustomJavaMethod(JNIEnv *env, const char *classPath1, const char *className, const char *methodName, int a);
 
-void loadJvmDll(CreateJavaVM *createJavaVM);
+void loadJvmDll(CreateJavaVM *createJavaVM, const char *jreHome);
 
 void testBuiltinMethod(JNIEnv *env);
 
-void createJVM(JavaVM *&jvm, JNIEnv *&env);
+void createJVM(JavaVM *&jvm, JNIEnv *&env, const char* jreHome);
 
-int main() {
+//int main() {
+//    printf("Result: %d", pow2(12));
+//    return 0;
+//}
+
+int pow2(int a, const char* jreHome)
+{
     JavaVM *jvm;
     JNIEnv *env;
 
-    createJVM(jvm, env);
+    createJVM(jvm, env, jreHome);
     testBuiltinMethod(env);
-    testCustomJavaMethod(env, "classes", "J4Cpp", "test");
+    int result = testCustomJavaMethod(env, "classes", "J4Cs", "pow2", a);
 
     jvm->DestroyJavaVM();
-    return 0;
+    return result;
 }
 
-void createJVM(JavaVM *&jvm, JNIEnv *&env) {
+void createJVM(JavaVM *&jvm, JNIEnv *&env, const char* jreHome) {
     cout << "Loading JVM DLL" << endl;
     CreateJavaVM createJavaVM;
-    loadJvmDll(&createJavaVM);
+    loadJvmDll(&createJavaVM, jreHome);
     cout << "Creating JVM Instance" << endl;
     // https://docs.oracle.com/javase/10/docs/specs/jni/invocation.html
     JavaVMInitArgs vm_args;
@@ -61,7 +68,7 @@ void testBuiltinMethod(JNIEnv *env) {
     std::cout << "Method Called" << std::endl;
 }
 
-int testCustomJavaMethod(JNIEnv *env, const char *classPath1, const char *className, const char *methodName) {
+int testCustomJavaMethod(JNIEnv *env, const char *classPath1, const char *className, const char *methodName, int a) {
     vector<string> classPath;
     classPath.emplace_back(classPath1);
 
@@ -100,17 +107,17 @@ int testCustomJavaMethod(JNIEnv *env, const char *classPath1, const char *classN
     jmethodID loadClass = env->GetMethodID(urlClassLoaderClass, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
     jstring mainClassNameUTF = env->NewStringUTF(className);
     jobject mainClass = env->CallObjectMethod(urlClassLoader, loadClass, mainClassNameUTF);
-    jmethodID mainMethod = env->GetStaticMethodID((jclass) mainClass, methodName, "()V");
+    jmethodID mainMethod = env->GetStaticMethodID((jclass) mainClass, methodName, "(I)I");
 
-    jobjectArray appArgs = env->NewObjectArray(0, env->FindClass("java/lang/String"), nullptr);
-    env->CallStaticVoidMethod((jclass) mainClass, mainMethod, appArgs);
-
-    return 0;
+    return env->CallStaticIntMethod((jclass) mainClass, mainMethod, a);
 }
 
-void loadJvmDll(CreateJavaVM *createJavaVM) {
-    const char *jvmDLLPath = "jre/bin/server/jvm.dll";
-    HINSTANCE jvmDll = LoadLibrary(jvmDLLPath);
+void loadJvmDll(CreateJavaVM *createJavaVM, const char *jreHome) {
+    string s_jreHome = jreHome;
+    string jvmDLLPath = s_jreHome + "/bin/server/jvm.dll";
+    printf("Loading JVM library from %s\n", jvmDLLPath.c_str());
+    HINSTANCE jvmDll = LoadLibrary(jvmDLLPath.c_str());
+
     if (jvmDll == nullptr) {
         DWORD lastErrorCode = GetLastError();
         if (lastErrorCode == 126) {
@@ -118,9 +125,9 @@ void loadJvmDll(CreateJavaVM *createJavaVM) {
             // load msvcr100.dll from the bundled JRE, then try again
             std::cout << "Failed to load jvm.dll. Trying to load msvcr100.dll first ..." << std::endl;
 
-            HINSTANCE hinstVCR = LoadLibrary("jre\\bin\\msvcr100.dll");
+            HINSTANCE hinstVCR = LoadLibrary((s_jreHome + "/bin/msvcr100.dll").c_str());
             if (hinstVCR != nullptr) {
-                jvmDll = LoadLibrary(jvmDLLPath);
+                jvmDll = LoadLibrary(jvmDLLPath.c_str());
             }
         }
         printf("Error: %d\n", lastErrorCode);

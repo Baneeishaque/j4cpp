@@ -15,7 +15,12 @@ message("JAVA_HOME: ${JAVA_HOME}")
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(j4cpp j4cpp.cpp)
+add_executable(j4cpp showcase/j4cpp.cpp)
+
+add_executable(j4cs_test j4cs_test/j4cs_test.cpp)
+
+add_library(j4cs SHARED j4cs/j4cs.cpp)
+#add_executable(j4cs j4cs/j4cs.cpp)
 
 include_directories(${JAVA_HOME}/include)
 include_directories(${JAVA_HOME}/include/win32)
@@ -24,4 +29,5 @@ include_directories(${JAVA_HOME}/include/win32/bridge)
 file(GLOB JRE_FILES "${JRE_HOME}/*")
 file(COPY ${JRE_FILES} DESTINATION jre)
 
-file(COPY ${PROJECT_SOURCE_DIR}/j4cpp.class DESTINATION classes)
+file(COPY showcase/J4Cpp.class DESTINATION classes)
+file(COPY j4cs_test/J4Cs.class DESTINATION classes)

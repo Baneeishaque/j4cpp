@@ -1,2 +1,13 @@
 /.idea
+/j4unity/.idea
 /cmake-build-*
+/j4unity/[Ll]ibrary/
+/j4unity/[Tt]emp/
+/j4unity/[Oo]bj/
+/j4unity/[Bb]uild/
+/j4unity/[Bb]uilds/
+/j4unity/[Ll]ogs/
+/j4unity/[Uu]ser[Ss]ettings/
+/j4unity/*.csproj
+/j4unity/*.sln
+*.log
