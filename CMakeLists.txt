@@ -16,17 +16,10 @@ message("JAVA_HOME: ${JAVA_HOME}")
 set(CMAKE_CXX_STANDARD 14)
 
 add_executable(j4cpp main.cpp)
+add_executable(hello hello.cpp)
 
 include_directories(${JAVA_HOME}/include)
 include_directories(${JAVA_HOME}/include/win32)
 include_directories(${JAVA_HOME}/include/win32/bridge)
 
-set(JVM_AS_LIBRARY "${JAVA_HOME}/lib/jvm.lib")
-
-message("JVM_AS_LIBRARY: ${JVM_AS_LIBRARY}")
-target_link_libraries(j4cpp ${JVM_AS_LIBRARY})
-
-foreach(X IN ITEMS bin/*.dll bin/server/*.dll bin/plugin2/*.dll bin/dtplugin/*.dll)
-    file(GLOB DLLS "${JRE_HOME}/${X}")
-    file(COPY ${DLLS} DESTINATION .)
-endforeach()
+file(COPY ${JRE_HOME} DESTINATION .)
